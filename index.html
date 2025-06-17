@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice Input Form</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    label { display: block; margin: 10px 0 5px; }
+    input { width: 100%; padding: 8px; font-size: 1rem; margin-bottom: 15px; }
+    button { padding: 10px 15px; font-size: 1rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h2>Shagun Entry Form</h2>
+  <form id="shagunForm">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required />
+
+    <label for="place">Place / Village:</label>
+    <input type="text" id="place" name="place" required />
+
+    <label for="amount">Amount (₹):</label>
+    <input type="number" id="amount" name="amount" required />
+
+    <button type="button" onclick="startVoiceInput()">🎤 Speak to Fill</button>
+    <button type="button" onclick="startVoiceInput('name')">🎤 Speak to Fill Name</button>
+    <button type="button" onclick="startVoiceInput('place')">🎤 Speak to Fill Place</button>
+    <button type="button" onclick="startVoiceInput('amount')">🎤 Speak to Fill Amount</button>
+
+  </form>
+
+  <script>
+    function startVoiceInput(type = '') {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'mr-IN'; // You can change to 'hi-IN' for Hindi or any supported language
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.start();
+
+      recognition.onresult = function (event) {
+        const spokenText = event.results[0][0].transcript.trim();
+        console.log("Recognized:", spokenText);
+
+        // Expecting format: name place amount (space-separated)
+        const cleanedText = spokenText.replace(/rupaye|rs|रुपये/gi, '').trim();
+
+        if(type == 'name') {
+          document.getElementById('name').value = cleanedText.trim();
+        } else if(type == 'place') {
+          console.log(cleanedText);
+          document.getElementById('place').value = cleanedText.trim();
+        } else {
+          const match = cleanedText.match(/(.+?)\s+(\S+)\s+(\d{2,6})$/);
+
+          if (match) {
+          const name = match[1].trim();
+          const place = match[2].trim();
+          const amount = match[3].trim();
+
+          document.getElementById('name').value = name;
+          document.getElementById('place').value = place;
+          document.getElementById('amount').value = amount;
+          } else {
+          alert("Could not understand. Please say: Name Place Amount (e.g., Ganpat Patil Sindhkheda 501)");
+          }
+        }
+      };
+
+      recognition.onerror = function (event) {
+        console.error("Speech recognition error", event.error);
+        alert("Error: " + event.error);
+      };
+    }
+  </script>
+</body>
+</html>
